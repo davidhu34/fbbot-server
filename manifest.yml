@@ -1,0 +1,5 @@
+---
+applications:
+ - name: fbbot-server
+   random-route: true
+   memory: 256M
