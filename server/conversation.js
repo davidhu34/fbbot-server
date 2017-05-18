@@ -4,12 +4,12 @@ const {
 	TYPE, ORGANIZATION_ID, DEVICE_TYPE, DEVICE_ID, USERNAME, PASSWORD
 } = require('../configs.js').MQTT
 
-const clientId = [type, organizationId, deviceType, deviceId].join(':')
-const iot_client = mqtt.connect('mqtt://'+organizationId+'.messaging.internetofthings.ibmcloud.com:1883', {
+const clientId = [TYPE, ORGANIZATION_ID, DEVICE_TYPE, DEVICE_ID].join(':')
+const iot_client = mqtt.connect('mqtt://'+ORGANIZATION_ID+'.messaging.internetofthings.ibmcloud.com:1883', {
 	"clientId" : clientId,
 	"keepalive" : 30,
-	"username" : username,
-	"password" : password
+	"username" : USERNAME,
+	"password" : PASSWORD
 })
 
 iot_client.on('connect', () => {

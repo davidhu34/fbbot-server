@@ -1,16 +1,19 @@
 const botly = require('botly')
 const conversation = require('./conversation')
 
-const { WEBHOOK, VERIFY_TOKEN, ACCESS_TOKEN } = require('configs').FBBOT
+const { WEBHOOK, VERIFY_TOKEN, ACCESS_TOKEN } = require('../configs').FBBOT
 
-const bot = new Botly({
+const bot = new botly({
     verifyToken: VERIFY_TOKEN,
     accessToken: ACCESS_TOKEN
 })
 
-const sendFB = requrie('./sendFB')(bot)
+//const sendFB = requrie('./sendFB')(bot)
 
 bot.on('message', (sender, message, data) => {
+    console.log('sender:',sender)
+    console.log('message:',message)
+    console.log('data:',data)
     bot.sendText({
         id: sender,
         text: 'hi!'
