@@ -18,7 +18,7 @@ iot_client.on('connect', () => {
 	iot_client.subscribe('iot-2/cmd/+/fmt/json', (err, granted) => {
 		console.log('subscribed command, granted: '+ JSON.stringify(granted))
 	})
-	iot_client.publish('iot-2/evt/init/fmt/string', '{"text": "connected"}')
+	iot_client.publish('iot-2/evt/init/fmt/string', JSON.stringify({text: 'connected'}))
 })
 
 module.exports = iot_client
