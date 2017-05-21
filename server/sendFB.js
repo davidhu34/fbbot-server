@@ -5,17 +5,6 @@ const currencySymbols = require('./currencySymbols.json')
 
 const { chzw } = require('./service')
 
-const get = url => {
-	const cb = (err, res, body) => {
-		console.log('request:', url)
-		console.log('err:', err)
-		console.log('res:', res)
-		console.log('body:', body)
-		return body
-	}
-	request(url, cb)
-}
-
 module.exports = botly => payload => {
 
 	const type = payload.type
@@ -26,26 +15,28 @@ module.exports = botly => payload => {
 	switch (type) {
 		case 'websearch':
 			console.log('wiki data:', data)
-			if (data.link) {
-				botly.sendButtons({
-					id: prev.sender,
-					text: chzw(data.result),
-					buttons: [{
-						type: 'web_url',
-						url: data.link,
-						title: 'wiki'
-					}]
-				}, (err, data) => {
-					console.log('websearch send:', err, data)
-				})
-			} else {
-				botly.sendText({
-					id: prev.sender,
-					text: chzw(data.result)
-				}, (err, data) => {
-					console.log('websearch send:', err, data)
-				})
-			}
+			chzw(data.result).then(zh => {
+				if (data.link) {
+					botly.sendButtons({
+						id: prev.sender,
+						text: zh,
+						buttons: [{
+							type: 'web_url',
+							url: data.link,
+							title: 'wiki'
+						}]
+					}, (err, data) => {
+						console.log('websearch send:', err, data)
+					})
+				} else {
+					botly.sendText({
+						id: prev.sender,
+						text: zh
+					}, (err, data) => {
+						console.log('websearch send:', err, data)
+					})
+				}
+			})
 			break
 		case 'news':
 			data.news.map(n => {
@@ -141,55 +132,66 @@ module.exports = botly => payload => {
 			})
 			break
 		case 'travel':
-			data.places.map(p => {
-				const placeType = p.types.filter(t => t !== 'point_of_interest').map(t => type_zh_tw[t]).join('/')
-				console.log(placeType)
-				elements.push({
-					image_url: p.photoUrl,
-					title: chzw(p.name),
-					subtitle: (p.rating? p.rating + ' | ':'')+ placeType + " | " + chzw(p.address),
-					item_url: "https://www.google.com.tw/search?q=" + p.name,
-					buttons: [{
-						type: 'web_url',
-						title: 'map',
-						url: 'http://maps.google.com.tw/maps?z=12&t=m&q=loc:' + p.location.lat + '+' + p.location.lng
-					}]
+			chzw( JSON.stringify(
+				data.places.map( p => ({
+					name: p.name, address: p.address
+				}))
+			)).then(zh => {
+				const zharr = JSON.parse(zh)
+				data.places.map( (p, idx) => {
+					const placeType = p.types.filter(t => t !== 'point_of_interest').map(t => type_zh_tw[t]).join('/')
+					console.log(placeType)
+					elements.push({
+						image_url: p.photoUrl,
+						title: zharr[idx].name,
+						subtitle: (p.rating? p.rating + ' | ':'')+ placeType + " | " + zharr[idx].address,
+						item_url: "https://www.google.com.tw/search?q=" + p.name,
+						buttons: [{
+							type: 'web_url',
+							title: 'map',
+							url: 'http://maps.google.com.tw/maps?z=12&t=m&q=loc:' + p.location.lat + '+' + p.location.lng
+						}]
+					})
 				})
-			})
-			botly.sendGeneric({
-				id: prev.sender,
-				elements: elements
-			}, (err, data) => {
-				console.log("travel cb:", err, data)
+				botly.sendGeneric({
+					id: prev.sender,
+					elements: elements
+				}, (err, data) => {
+					console.log("travel cb:", err, data)
+				})
 			})
 			break
 		case 'movie':
-			data.movies.map(m => {
-				const genre = chzw(m.genres.join('/'))
-				const cast = chzw(m.casts.map(m => m.name).join())
-				const name = chzw(m.original_title)
-				if (!name.match(/[\u3400-\u9FBF]/) && elements.length < 8) elements.push({
-					image_url: m.images.large,
-					title: name + ' (' + m.year + ')', //chzw(m.title) + '('+m.year+')',
-					subtitle: "類別: " + genre + " | 主演: " + cast + " | 評價: " + m.rating.average,
-					item_url: "https://www.google.com.tw/search?q=" + (m.original_title + '+' + m.year).replace(" ", '+') //m.alt
+			chzw(JSON.stringify(data)).then(zh => {
+				JSON.parse(zh).movies.map(m => {
+					const genre = m.genres.join('/')
+					const cast = m.casts.map(m => m.name).join()
+					const name = m.original_title
+					if (!name.match(/[\u3400-\u9FBF]/) && elements.length < 8) elements.push({
+						image_url: m.images.large,
+						title: name + ' (' + m.year + ')', // m.title + '('+m.year+')',
+						subtitle: "類別: " + genre + " | 主演: " + cast + " | 評價: " + m.rating.average,
+						item_url: "https://www.google.com.tw/search?q=" + (m.original_title + '+' + m.year).replace(" ", '+') //m.alt
+					})
 				})
-			})
-			request('https://api.douban.com/v2/movie/subject/' + data.movies[0].id, (err, res, body) => {
-				console.log('request:', data.movies[0].id)
-				console.log('err:', err)
-				console.log('res:', res)
-				const summary = chzw(JSON.parse(body).summary).substr(0, 600)
-				botly.sendText({
+				request('https://api.douban.com/v2/movie/subject/' + data.movies[0].id, (err, res, body) => {
+					if (err) console.log('movie sum err:', err)
+					else chzw(JSON.parse(body).summary).then(zhsum => {
+						const summary = zhsum.substr(0, 600)
+						botly.sendText({
+							id: prev.sender,
+							text: '推薦新上映: ' + summary
+						}, (err, data) => {
+							console.log("movies sum cb:", err, data)
+						})
+					})
+				})
+				botly.sendGeneric({
 					id: prev.sender,
-					text: '推薦新上映: ' + summary
+					elements: elements
+				}, (err, data) => {
+					console.log("movies cb:", err, data)
 				})
-			})
-			botly.sendGeneric({
-				id: prev.sender,
-				elements: elements
-			}, (err, data) => {
-				console.log("movies cb:", err, data)
 			})
 			break
 		case 'restaurant':
@@ -247,7 +249,7 @@ module.exports = botly => payload => {
 					title: rv.rating + " / 5.0",
 					subtitle: rv.text
 				})
-			})		
+			})
 			botly.send({
 				id: prev.sender,
 				message: {
@@ -283,21 +285,26 @@ module.exports = botly => payload => {
 						url: data.google,
 						title: 'open map'
 					})
-				botly.sendButtons({
-					id: prev.sender,
-					text: chzw(data.name + '...' + data.reviews[0].text).slice(0, 640),
-					buttons: buttons
-				}, (err, data) => {
-					console.log("reviews button cb:", err, data)
-				})
+				chzw(data.name + '...' + data.reviews[0].text)
+					.then(zh => {
+						botly.sendButtons({
+							id: prev.sender,
+							text: zh.slice(0, 640),
+							buttons: buttons
+						}, (err, data) => {
+							console.log("reviews button cb:", err, data)
+						})
+					})
 			})//}
 			break
 		case 'hsr':
-			botly.sendText({
-				id: prev.sender,
-				text: chzw(data.hsr)
-			}, (err, data) => {
-				console.log('hsr table text send cb:', err, data)
+			chzw(data.hsr).then(zh => {
+				botly.sendText({
+					id: prev.sender,
+					text: zh
+				}, (err, data) => {
+					console.log('hsr table text send cb:', err, data)
+				})
 			})
 			break
 		case 'similarity':
@@ -326,7 +333,7 @@ module.exports = botly => payload => {
 				id: prev.sender,
 				elements: elements
 			}, (err, data) => {
-				console.log("travel cb:", err, data)
+				console.log("faec cb:", err, data)
 			})
 			/* const buttons = []
 			for(var i=0;i<3;i++){
@@ -336,7 +343,7 @@ module.exports = botly => payload => {
 						title: similar_images[i].score
 					})
 			}
-				
+
 				botly.sendButtons({
 					id: prev.sender,
 					text: '以下是你的明星臉哦！',
@@ -353,12 +360,14 @@ module.exports = botly => payload => {
 			break
 		case 'text':
 		default:
-		console.log('text')
-			botly.sendText({
-				id: prev.sender,
-				text: chzw(data.text)
-			}, (err, data) => {
-				console.log('text send cb:', err, data)
+			console.log('textmsg', data.text)
+			chzw(data.text).then(zh => {
+				botly.sendText({
+					id: prev.sender,
+					text: zh
+				}, (err, data) => {
+					console.log('default text send cb:', err, data)
+				})
 			})
 	}
 }

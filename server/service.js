@@ -1,16 +1,24 @@
 const request = require('request')
+const { CHZW_URL } = require('./configs').SERVICE
 
 module.exports = {
-	chzw: (str) => {
+	chzw: (str) => new Promise( (resolve, reject) => {
+		console.log('translating zhtw:', str)
 		request.post({
 			headers: {'content-type' : 'application/x-www-form-urlencoded'},
-			url: 'http://119.81.236.205:3998/chzw',
+			url: CHZW_URL,
 			body: 'text='+str
-		}, function(err, res, body){
-			if (err) console.log('chzw err:', err)
-			else return res.body
+		}, (err, res, body) => {
+			if (err) reject(err)
+			else {
+				console.log('zhtw success', res.body)
+				resolve(res.body)
+			}
 		})
-	},
+	}).catch( err => {
+		console.log('chzw err:', err)
+	}),
+
 	ifly: (str) => {
 
 	}

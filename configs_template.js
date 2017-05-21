@@ -11,5 +11,8 @@ module.exports = {
 		DEVICE_ID: '',
 		USERNAME: 'use-token-auth',
 		PASSWORD: ''
+	},
+	SERVICE: {
+		CHZW_URL: ''
 	}
 }
