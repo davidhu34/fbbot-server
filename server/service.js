@@ -1,5 +1,5 @@
 const request = require('request')
-const { CHZW_URL } = require('./configs').SERVICE
+const { CHZW_URL } = require('../configs').SERVICE
 
 module.exports = {
 	chzw: (str) => new Promise( (resolve, reject) => {

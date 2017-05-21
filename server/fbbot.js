@@ -40,14 +40,6 @@ bot.on('message', (sender, message, data) => {
         console.log('profile promise err:', err)
     });
 
-
-    bot.sendText({
-        id: sender,
-        text: 'hi!'
-    }, (err, data) => {
-        if (err) console.log('greet err:',err)
-        else console.log('greet success:', data,"send text cb")
-    })
 })
 
 module.exports = app =>
