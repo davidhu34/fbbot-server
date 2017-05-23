@@ -30,6 +30,7 @@
     "moment": "^2.18.1",
     "mqtt": "^2.7.1",
     "node-schedule": "^1.2.2",
+    "node-wget": "^0.4.2",
     "request": "^2.81.0",
     "watson-developer-cloud": "^2.31.1"
   }
