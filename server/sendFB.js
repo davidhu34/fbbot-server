@@ -74,16 +74,17 @@ module.exports = botly => payload => {
 			})
 			break
 		case 'weather':
-			const w = data.weather
-			elements.push({
-				image_url: w.imageUrl,
-				title: w.name + ' - ' + w.time,
-				subtitle: w.narrative + " " + w.lunar,
-				/*buttons: [{
-					type: 'web_url',
-					title: 'google',
-					url: 'https://www.google.com'
-				}]*/
+			data.weather.map( w => {
+				elements.push({
+					image_url: w.imageUrl,
+					title: w.name + ' - ' + w.time,
+					subtitle: w.narrative + " " + w.lunar,
+					/*buttons: [{
+						type: 'web_url',
+						title: 'google',
+						url: 'https://www.google.com'
+					}]*/
+				})
 			})
 			botly.sendGeneric({
 				id: prev.sender,
@@ -92,12 +93,13 @@ module.exports = botly => payload => {
 			}, (err, data) => {
 				console.log('weather gen cb:', err, data)
 			})
-			botly.sendText({
-				id: prev.sender,
-				text: w.suggestion
-			}, (err, data) => {
-				console.log('weather sug cb:', err, data)
-			})
+			if (elements.length === 1)
+				botly.sendText({
+					id: prev.sender,
+					text: data.weather[0].suggestion
+				}, (err, data) => {
+					console.log('weather sug cb:', err, data)
+				})
 			break
 		case 'stock':
 			const stockCode = data.stock.split(':')

@@ -1,4 +1,5 @@
 vcap-local.json
 node_modules
 configs.js
+configs_dev.js
 reply.js
