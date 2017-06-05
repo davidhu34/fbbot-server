@@ -9,16 +9,27 @@ module.exports = botly => payload => {
 
 	const type = payload.type
 	const prev = payload.prev
+	const sender = prev.sender
 	const data = payload.data
 	const elements = []
 
 	switch (type) {
+		case 'music':
+			console.log('song url:', data.music)
+			botly.sendAttachment({
+				id: sender,
+				type: 'audio',
+				payload: {url: data.music}
+			}, (err, data) => {
+				console.log('watson audio send cb:',err,data)
+			})
+			break
 		case 'websearch':
 			console.log('wiki data:', data)
 			chzw(data.result).then(zh => {
 				if (data.link) {
 					botly.sendButtons({
-						id: prev.sender,
+						id: sender,
 						text: zh,
 						buttons: [{
 							type: 'web_url',
@@ -30,7 +41,7 @@ module.exports = botly => payload => {
 					})
 				} else {
 					botly.sendText({
-						id: prev.sender,
+						id: sender,
 						text: zh
 					}, (err, data) => {
 						console.log('websearch send:', err, data)
@@ -57,7 +68,7 @@ module.exports = botly => payload => {
 				}
 			})
 			botly.sendAttachment({
-				id: prev.sender,
+				id: sender,
 				type: 'template',
 				payload: {
 					template_type: 'list',
@@ -87,7 +98,7 @@ module.exports = botly => payload => {
 				})
 			})
 			botly.sendGeneric({
-				id: prev.sender,
+				id: sender,
 				aspectRatio: 'square',
 				elements: elements
 			}, (err, data) => {
@@ -95,7 +106,7 @@ module.exports = botly => payload => {
 			})
 			if (elements.length === 1)
 				botly.sendText({
-					id: prev.sender,
+					id: sender,
 					text: data.weather[0].suggestion
 				}, (err, data) => {
 					console.log('weather sug cb:', err, data)
@@ -121,12 +132,12 @@ module.exports = botly => payload => {
 				}]
 			})
 			botly.sendImage({
-				id: prev.sender,
+				id: sender,
 				url: data.graphUrl
 			}, (err, data) => {
 				console.log("stock img cb:", err, data)
 				botly.sendGeneric({
-					id: prev.sender,
+					id: sender,
 					elements: elements
 				}, (err, data) => {
 					console.log("stock gen. cb:", err, data)
@@ -156,7 +167,7 @@ module.exports = botly => payload => {
 					})
 				})
 				botly.sendGeneric({
-					id: prev.sender,
+					id: sender,
 					elements: elements
 				}, (err, data) => {
 					console.log("travel cb:", err, data)
@@ -181,7 +192,7 @@ module.exports = botly => payload => {
 					else chzw(JSON.parse(body).summary).then(zhsum => {
 						const summary = zhsum.substr(0, 600)
 						botly.sendText({
-							id: prev.sender,
+							id: sender,
 							text: '推薦新上映: ' + summary
 						}, (err, data) => {
 							console.log("movies sum cb:", err, data)
@@ -189,7 +200,7 @@ module.exports = botly => payload => {
 					})
 				})
 				botly.sendGeneric({
-					id: prev.sender,
+					id: sender,
 					elements: elements
 				}, (err, data) => {
 					console.log("movies cb:", err, data)
@@ -211,7 +222,7 @@ module.exports = botly => payload => {
 				})
 			})
 			botly.sendAttachment({
-				id: prev.sender,
+				id: sender,
 				type: 'template',
 				payload: {
 					template_type: 'list',
@@ -253,13 +264,13 @@ module.exports = botly => payload => {
 				})
 			})
 			botly.send({
-				id: prev.sender,
+				id: sender,
 				message: {
 					text: '供您參考最高評價選項'
 				}
 			}, (err, d) => {
 				/*botly.sendAttachment({
-					id: prev.sender,
+					id: sender,
 					type: 'template',
 					payload: {
 						template_type: 'list',
@@ -290,7 +301,7 @@ module.exports = botly => payload => {
 				chzw(data.name + '...' + data.reviews[0].text)
 					.then(zh => {
 						botly.sendButtons({
-							id: prev.sender,
+							id: sender,
 							text: zh.slice(0, 640),
 							buttons: buttons
 						}, (err, data) => {
@@ -302,7 +313,7 @@ module.exports = botly => payload => {
 		case 'hsr':
 			chzw(data.hsr).then(zh => {
 				botly.sendText({
-					id: prev.sender,
+					id: sender,
 					text: zh
 				}, (err, data) => {
 					console.log('hsr table text send cb:', err, data)
@@ -313,7 +324,7 @@ module.exports = botly => payload => {
 			const similar_images = data.similar_images
 			console.log('Similarity Images: ' + similar_images)
 			botly.sendText({
-				id: prev.sender,
+				id: sender,
 				text: '以下是你的明星臉哦！'
 			}, (err, data) => {
 				console.log('text send cb:', err, data)
@@ -332,7 +343,7 @@ module.exports = botly => payload => {
 					})
 			}
 			botly.sendGeneric({
-				id: prev.sender,
+				id: sender,
 				elements: elements
 			}, (err, data) => {
 				console.log("faec cb:", err, data)
@@ -347,14 +358,14 @@ module.exports = botly => payload => {
 			}
 
 				botly.sendButtons({
-					id: prev.sender,
+					id: sender,
 					text: '以下是你的明星臉哦！',
 					buttons: buttons
 				}, (err, data) => {
 					console.log("reviews button cb:", err, data)
 				}) */
 			/* botly.sendText({
-				id: prev.sender,
+				id: sender,
 				text: chzw(data.hsr)
 			}, (err, data) => {
 				console.log('hsr table text send cb:', err, data)
@@ -365,7 +376,7 @@ module.exports = botly => payload => {
 			console.log('textmsg', data.text)
 			chzw(data.text).then(zh => {
 				botly.sendText({
-					id: prev.sender,
+					id: sender,
 					text: zh
 				}, (err, data) => {
 					console.log('default text send cb:', err, data)
