@@ -144,6 +144,24 @@ module.exports = botly => payload => {
 				})
 			})
 			break
+		case 'location':
+			const loc = data.location.geometry.location	
+			elements.push({
+				image_url: data.map,
+				title: data.location.name,
+				buttons: [{
+					type: 'web_url',
+					title: 'open map',
+					url: 'http://maps.google.com.tw/maps?z=12&t=m&q=loc:' + loc.lat + '+' + loc.lng
+				}]
+			})		
+			botly.sendGeneric({
+				id: sender,
+				elements: elements
+			}, (err, data) => {
+				console.log("map gen. cb:", err, data)
+			})
+			break
 		case 'travel':
 			chzw( JSON.stringify(
 				data.places.map( p => ({

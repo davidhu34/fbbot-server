@@ -23,6 +23,7 @@ bot.on('message', (sender, message, data) => {
             bot.getUserProfile(sender, (err, info) => {
                 if (err) reject(err)
                 users[sender] = info;
+                users[sender].oldConversation = {}
                 msgs[sender] = {}
                 resolve([sender, message, data])
                 bot.sendText({
